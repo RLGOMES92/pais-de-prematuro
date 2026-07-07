@@ -9,10 +9,21 @@ const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 `;
 
+const PASTEL = {
+  mint: "#C6EFD9",
+  mintDark: "#2F6B47",
+  blue: "#D3E6FE",
+  blueDark: "#3B5998",
+  lilac: "#E7DAF7",
+  lilacDark: "#6B4E96",
+  peach: "#FFE6D6",
+  peachDark: "#B5703F",
+};
+
 const STATUS_META = {
-  uti: { label: "UTI Neonatal", color: "#A1C4FD", dark: "#4A6FA5", icon: Moon, bg: "#EEF4FF" },
-  semi: { label: "Semi-intensiva", color: "#88D49E", dark: "#3E8B5C", icon: ActivitySquare, bg: "#F0FBF4" },
-  alta: { label: "Alta! Em casa", color: "#F2C879", dark: "#A9791E", icon: HomeIcon, bg: "#FEF8EC" },
+  uti: { label: "UTI Neonatal", color: PASTEL.blue, dark: PASTEL.blueDark, icon: Moon, bg: "#EEF4FF" },
+  semi: { label: "Semi-intensiva", color: PASTEL.mint, dark: PASTEL.mintDark, icon: ActivitySquare, bg: "#F0FBF4" },
+  alta: { label: "Alta! Em casa", color: PASTEL.peach, dark: PASTEL.peachDark, icon: HomeIcon, bg: "#FEF8EC" },
 };
 
 const FOUNDER_STORY = {
@@ -71,6 +82,28 @@ const SEED_STORIES = [
   },
 ];
 
+function resizeImage(file, maxWidth = 480) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.75));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 const storage = {
   async get(key) {
     const value = localStorage.getItem(key);
@@ -128,9 +161,19 @@ export default function App() {
   };
 
   const handleLogin = (name) => {
-    setUser({ name });
+    setUser({ name, isAdmin: false });
     setShowLogin(false);
     showToast(`Bem-vindo(a), ${name}! ✨`);
+  };
+
+  const handleAdminLogin = (password) => {
+    if (password === "Tina1904") {
+      setUser({ name: "Administrador", isAdmin: true });
+      setShowLogin(false);
+      showToast("Você entrou como admin! 🔑");
+      return true;
+    }
+    return false;
   };
 
   const handleLogout = () => {
@@ -215,7 +258,7 @@ export default function App() {
         @keyframes floatIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
         .floatIn { animation: floatIn .5s ease both; }
         button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible {
-          outline: 3px solid #A1C4FD; outline-offset: 2px;
+          outline: 3px solid ${PASTEL.blue}; outline-offset: 2px;
         }
         @media (prefers-reduced-motion: reduce) {
           .floatIn { animation: none; }
@@ -229,6 +272,7 @@ export default function App() {
           <Hero onForca={scrollToForca} onDesabafar={openDesabafar} />
           <FounderCard story={FOUNDER_STORY} expanded={!!expanded[FOUNDER_STORY.id]} onToggle={() => toggleExpand(FOUNDER_STORY.id)} />
           <div id="forca-section" />
+          <EncouragementSection />
           <Feed
             loading={loading}
             filter={filter}
@@ -247,13 +291,21 @@ export default function App() {
         />
       )}
 
-      {view === "admin" && (
+      {view === "admin" && user?.isAdmin && (
         <AdminPanel pending={pendingStories} onModerate={handleModerate} />
+      )}
+
+      {view === "admin" && !user?.isAdmin && (
+        <div style={{ maxWidth: 780, margin: "0 auto", padding: "40px 24px" }}>
+          <div style={{ background: "#FDF4F2", border: "1px solid #F3D9D2", borderRadius: 16, padding: "32px 24px", textAlign: "center" }}>
+            <p style={{ fontSize: 16, color: "#B5543F", fontWeight: 600 }}>Acesso restrito a administradores.</p>
+          </div>
+        </div>
       )}
 
       <Footer setView={setView} user={user} />
 
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} onAdminLogin={handleAdminLogin} />}
       {showNewStory && (
         <NewStoryModal onClose={() => setShowNewStory(false)} onSubmit={handleNewStory} />
       )}
@@ -307,7 +359,7 @@ function Header({ user, onLogin, onLogout, view, setView }) {
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {user && (
+          {user && !user.isAdmin && (
             <button
               onClick={() => setView("myStories")}
               style={{
@@ -323,9 +375,11 @@ function Header({ user, onLogin, onLogout, view, setView }) {
           )}
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 13.5, color: "#7A7263", fontWeight: 600, display: "none" }} className="hide-sm">
-                {user.name}
-              </span>
+              {!user.isAdmin && (
+                <span style={{ fontSize: 13.5, color: "#7A7263", fontWeight: 600, display: "none" }} className="hide-sm">
+                  {user.name}
+                </span>
+              )}
               <button
                 onClick={onLogout}
                 title="Sair"
@@ -344,8 +398,8 @@ function Header({ user, onLogin, onLogout, view, setView }) {
               style={{
                 display: "flex", alignItems: "center", gap: 6, fontFamily: "'Poppins', sans-serif",
                 fontSize: 13.5, fontWeight: 700, padding: "10px 16px", borderRadius: 999,
-                border: "none", background: "#A1C4FD", color: "#1F3B63", cursor: "pointer",
-                boxShadow: "0 2px 10px rgba(161,196,253,0.5)",
+                border: "none", background: PASTEL.blue, color: PASTEL.blueDark, cursor: "pointer",
+                boxShadow: `0 2px 10px rgba(211,230,254,0.6)`,
               }}
             >
               <LogIn size={15} /> Entrar
@@ -370,8 +424,19 @@ function Hero({ onForca, onDesabafar }) {
       >
         <Sparkles size={14} /> Você não está sozinho(a) nessa jornada
       </div>
-      <h1 className="font-display" style={{ fontSize: "clamp(28px, 5vw, 42px)", fontWeight: 800, color: "#3A362E", lineHeight: 1.2, margin: "0 0 14px" }}>
-        Cada grama, cada dia,<br />cada vitória importa.
+      <h1 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 52px)", fontWeight: 800, color: "#3A362E", lineHeight: 1.3, margin: "0 auto 18px", maxWidth: 640, textAlign: "center" }}>
+        Cada grama, cada dia,<br />
+        <span
+          style={{
+            background: `linear-gradient(120deg, ${PASTEL.blue} 0%, ${PASTEL.mint} 100%)`,
+            padding: "3px 16px",
+            borderRadius: 14,
+            display: "inline-block",
+            marginTop: 8,
+          }}
+        >
+          cada vitória importa.
+        </span>
       </h1>
       <p style={{ fontSize: 16.5, color: "#7A7263", lineHeight: 1.6, maxWidth: 560, margin: "0 auto 30px" }}>
         Um espaço acolhedor para famílias que vivem a rotina da UTI Neonatal. Aqui você pode ler
@@ -381,10 +446,10 @@ function Hero({ onForca, onDesabafar }) {
         <button
           onClick={onForca}
           style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 15, color: "#1F3B63",
-            background: "#A1C4FD", border: "none", padding: "14px 24px", borderRadius: 999,
+            fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 15, color: PASTEL.blueDark,
+            background: PASTEL.blue, border: "none", padding: "14px 24px", borderRadius: 999,
             cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-            boxShadow: "0 6px 18px rgba(161,196,253,0.45)",
+            boxShadow: "0 6px 18px rgba(211,230,254,0.7)",
           }}
         >
           <Heart size={17} /> Preciso de Força
@@ -392,10 +457,10 @@ function Hero({ onForca, onDesabafar }) {
         <button
           onClick={onDesabafar}
           style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 15, color: "#2C5B3E",
-            background: "#88D49E", border: "none", padding: "14px 24px", borderRadius: 999,
+            fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 15, color: PASTEL.mintDark,
+            background: PASTEL.mint, border: "none", padding: "14px 24px", borderRadius: 999,
             cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-            boxShadow: "0 6px 18px rgba(136,212,158,0.45)",
+            boxShadow: "0 6px 18px rgba(198,239,217,0.7)",
           }}
         >
           <MessageCircleHeart size={17} /> Quero Desabafar
@@ -505,6 +570,48 @@ function UpdatesTimeline({ updates }) {
   );
 }
 
+/* ---------------- Palavras de Incentivo ---------------- */
+const ENCOURAGEMENT_PHRASES = [
+  { text: "Seu amor já está curando, mesmo que você ainda não veja.", color: PASTEL.mint, dark: PASTEL.mintDark },
+  { text: "Cada dia que passa é uma vitória, não importa o tamanho.", color: PASTEL.blue, dark: PASTEL.blueDark },
+  { text: "Você não precisa ser forte o tempo todo. Só precisa continuar aqui.", color: PASTEL.lilac, dark: PASTEL.lilacDark },
+  { text: "Gramas se ganham. Fé se constrói. Você está fazendo as duas coisas.", color: PASTEL.peach, dark: PASTEL.peachDark },
+  { text: "Está tudo bem chorar no corredor e sorrir na hora da visita.", color: PASTEL.blue, dark: PASTEL.blueDark },
+  { text: "Seu bebê sente sua voz, seu cheiro, seu toque. Isso já é cuidado.", color: PASTEL.mint, dark: PASTEL.mintDark },
+  { text: "Essa fase é uma página difícil, não o livro inteiro.", color: PASTEL.peach, dark: PASTEL.peachDark },
+  { text: "Respire. Um dia vocês vão contar essa história pelo final feliz.", color: PASTEL.lilac, dark: PASTEL.lilacDark },
+];
+
+function EncouragementSection() {
+  return (
+    <section style={{ maxWidth: 900, margin: "0 auto", padding: "10px 24px 10px" }}>
+      <h2 className="font-display" style={{ textAlign: "center", fontSize: 22, fontWeight: 800, color: "#3A362E", marginBottom: 6 }}>
+        Palavras para o seu coração hoje
+      </h2>
+      <p style={{ textAlign: "center", fontSize: 13.5, color: "#9C9384", marginBottom: 22 }}>
+        Escolhemos algumas frases para os dias mais difíceis. Você não está sozinho(a).
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14 }}>
+        {ENCOURAGEMENT_PHRASES.map((p, i) => (
+          <div
+            key={i}
+            className="floatIn"
+            style={{
+              background: p.color, borderRadius: 16, padding: "18px 18px",
+              display: "flex", flexDirection: "column", gap: 10,
+            }}
+          >
+            <Heart size={16} color={p.dark} fill={p.dark} />
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: p.dark, fontWeight: 600 }}>
+              {p.text}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- Feed ---------------- */
 function Feed({ loading, filter, setFilter, stories, expanded, toggleExpand }) {
   const filters = [
@@ -526,9 +633,9 @@ function Feed({ loading, filter, setFilter, stories, expanded, toggleExpand }) {
             style={{
               fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 700,
               padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-              border: filter === f.id ? "1.5px solid #88D49E" : "1.5px solid #EFE9DD",
+              border: filter === f.id ? `1.5px solid ${PASTEL.mint}` : "1.5px solid #EFE9DD",
               background: filter === f.id ? "#F0FBF4" : "#fff",
-              color: filter === f.id ? "#3E7C57" : "#9C9384",
+              color: filter === f.id ? PASTEL.mintDark : "#9C9384",
             }}
           >
             {f.label}
@@ -560,10 +667,15 @@ function StoryCard({ story, expanded, onToggle }) {
   return (
     <article className="floatIn" style={{ background: "#fff", border: "1px solid #F0EBE0", borderRadius: 18, padding: "20px 22px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-        <div>
-          <h3 className="font-display" style={{ margin: 0, fontSize: 16.5, fontWeight: 700, color: "#3A362E" }}>{story.babyName}</h3>
-          <div style={{ fontSize: 12.5, color: "#9C9384", marginTop: 2 }}>
-            {story.weeks} semanas · {story.weight} — por {story.authorName}
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {story.photo && (
+            <img src={story.photo} alt={story.babyName} style={{ width: 52, height: 52, borderRadius: 14, objectFit: "cover", border: "2px solid #F0EBE0", flexShrink: 0 }} />
+          )}
+          <div>
+            <h3 className="font-display" style={{ margin: 0, fontSize: 16.5, fontWeight: 700, color: "#3A362E" }}>{story.babyName}</h3>
+            <div style={{ fontSize: 12.5, color: "#9C9384", marginTop: 2 }}>
+              {story.weeks} semanas · {story.weight} — por {story.authorName}
+            </div>
           </div>
         </div>
         <StatusBadge status={story.status} />
@@ -582,44 +694,94 @@ function StoryCard({ story, expanded, onToggle }) {
 }
 
 /* ---------------- Login Modal (simulado) ---------------- */
-function LoginModal({ onClose, onLogin }) {
+function LoginModal({ onClose, onLogin, onAdminLogin }) {
   const [name, setName] = useState("");
+  const [tab, setTab] = useState("user"); // user | admin
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminError, setAdminError] = useState("");
+
+  const handleAdminSubmit = () => {
+    if (onAdminLogin(adminPassword)) {
+      onClose();
+    } else {
+      setAdminError("Senha incorreta");
+      setAdminPassword("");
+      setTimeout(() => setAdminError(""), 3000);
+    }
+  };
+
   return (
-    <Modal onClose={onClose} title="Entrar para participar" icon={<LogIn size={18} />}>
-      <p style={{ fontSize: 13.5, color: "#9C9384", margin: "0 0 18px" }}>
-        Para comentar ou compartilhar sua história, faça login. Nesta demonstração, escolha uma
-        opção e diga como quer ser chamado(a).
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-        <SocialLoginButton label="Continuar com Google" color="#EA4335" />
-        <SocialLoginButton label="Continuar com Facebook" color="#1877F2" />
+    <Modal onClose={onClose} title="Entrar" icon={<LogIn size={18} />}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <TabBtn active={tab === "user"} onClick={() => { setTab("user"); setAdminError(""); }}>Participante</TabBtn>
+        <TabBtn active={tab === "admin"} onClick={() => { setTab("admin"); setAdminError(""); }}>Administrador</TabBtn>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0 14px" }}>
-        <div style={{ flex: 1, height: 1, background: "#F0EBE0" }} />
-        <span style={{ fontSize: 11.5, color: "#B4AC9C" }}>ou informe seu nome</span>
-        <div style={{ flex: 1, height: 1, background: "#F0EBE0" }} />
-      </div>
-      <input
-        placeholder="Como podemos te chamar?"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        style={inputStyle}
-      />
-      <button
-        disabled={!name.trim()}
-        onClick={() => onLogin(name.trim())}
-        style={{ ...primaryBtnStyle, width: "100%", marginTop: 14, opacity: name.trim() ? 1 : 0.5 }}
-      >
-        Entrar
-      </button>
+
+      {tab === "user" ? (
+        <>
+          <p style={{ fontSize: 13.5, color: "#9C9384", margin: "0 0 18px" }}>
+            Para comentar ou compartilhar sua história, faça login. Nesta demonstração, escolha uma
+            opção e diga como quer ser chamado(a).
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+            <SocialLoginButton label="Continuar com Google" color="#EA4335" name={name} setName={setName} onLogin={onLogin} />
+            <SocialLoginButton label="Continuar com Facebook" color="#1877F2" name={name} setName={setName} onLogin={onLogin} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0 14px" }}>
+            <div style={{ flex: 1, height: 1, background: "#F0EBE0" }} />
+            <span style={{ fontSize: 11.5, color: "#B4AC9C" }}>ou informe seu nome</span>
+            <div style={{ flex: 1, height: 1, background: "#F0EBE0" }} />
+          </div>
+          <input
+            placeholder="Como podemos te chamar?"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={inputStyle}
+          />
+          <button
+            disabled={!name.trim()}
+            onClick={() => onLogin(name.trim())}
+            style={{ ...primaryBtnStyle, width: "100%", marginTop: 14, opacity: name.trim() ? 1 : 0.5 }}
+          >
+            Entrar
+          </button>
+        </>
+      ) : (
+        <>
+          <p style={{ fontSize: 13.5, color: "#9C9384", margin: "0 0 18px" }}>
+            Informe a senha de administrador para acessar o painel de moderação.
+          </p>
+          <input
+            type="password"
+            placeholder="Senha de administrador"
+            value={adminPassword}
+            onChange={(e) => { setAdminPassword(e.target.value); setAdminError(""); }}
+            style={inputStyle}
+          />
+          {adminError && (
+            <div style={{ color: "#B5543F", fontSize: 13, marginBottom: 12, fontWeight: 600 }}>
+              {adminError}
+            </div>
+          )}
+          <button
+            disabled={!adminPassword.trim()}
+            onClick={handleAdminSubmit}
+            style={{ ...primaryBtnStyle, width: "100%", marginTop: 14, opacity: adminPassword.trim() ? 1 : 0.5 }}
+          >
+            Acessar Painel
+          </button>
+          <p style={{ fontSize: 12, color: "#B4AC9C", marginTop: 14, textAlign: "center" }}>
+            💡 Senha padrão: <code style={{ background: "#F5F1E8", padding: "2px 6px", borderRadius: 4 }}>admin123</code>
+          </p>
+        </>
+      )}
     </Modal>
   );
 
-  function SocialLoginButton({ label, color }) {
+  function SocialLoginButton({ label, color, name, setName, onLogin }) {
     return (
       <button
-        onClick={() => name.trim() && onLogin(name.trim())}
-        onClickCapture={() => { if (!name.trim()) setName("Visitante"); }}
+        onClick={() => { if (!name.trim()) setName("Visitante"); onLogin(name.trim() || "Visitante"); }}
         style={{
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
           padding: "11px 14px", borderRadius: 12, border: "1.5px solid #F0EBE0",
@@ -641,6 +803,22 @@ function NewStoryModal({ onClose, onSubmit }) {
   const [weight, setWeight] = useState("");
   const [status, setStatus] = useState("uti");
   const [text, setText] = useState("");
+  const [photo, setPhoto] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoLoading(true);
+    try {
+      const dataUrl = await resizeImage(file);
+      setPhoto(dataUrl);
+    } catch {
+      // silencioso: se falhar, apenas não anexa foto
+    } finally {
+      setPhotoLoading(false);
+    }
+  };
 
   const valid = babyName.trim() && weeks && weight.trim() && text.trim().length > 10;
 
@@ -676,9 +854,25 @@ function NewStoryModal({ onClose, onSubmit }) {
           style={{ ...inputStyle, resize: "vertical", fontFamily: "'Nunito', sans-serif" }}
         />
       </Field>
+      <Field label="Foto do bebê (opcional)">
+        <input type="file" accept="image/*" onChange={handlePhotoChange} style={inputStyle} />
+        {photoLoading && <div style={{ fontSize: 12.5, color: "#9C9384", marginBottom: 10 }}>Carregando foto…</div>}
+        {photo && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+            <img src={photo} alt="Prévia" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 14, border: "1.5px solid #F0EBE0" }} />
+            <button
+              type="button"
+              onClick={() => setPhoto(null)}
+              style={{ background: "none", border: "none", color: "#B5543F", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}
+            >
+              Remover foto
+            </button>
+          </div>
+        )}
+      </Field>
       <button
         disabled={!valid}
-        onClick={() => onSubmit({ babyName: babyName.trim(), weeks: Number(weeks), weight: weight.trim(), status, text: text.trim() })}
+        onClick={() => onSubmit({ babyName: babyName.trim(), weeks: Number(weeks), weight: weight.trim(), status, text: text.trim(), photo })}
         style={{ ...primaryBtnStyle, width: "100%", marginTop: 16, opacity: valid ? 1 : 0.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
       >
         <Send size={15} /> Enviar para aprovação
@@ -865,12 +1059,14 @@ function Footer({ setView, user }) {
       <p style={{ fontSize: 13, color: "#B4AC9C", margin: "0 0 8px" }}>
         Feito com 💚 para famílias que atravessam a jornada da prematuridade.
       </p>
-      <button
-        onClick={() => setView("admin")}
-        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#D6D0C2", textDecoration: "underline" }}
-      >
-        Painel administrativo
-      </button>
+      {user?.isAdmin && (
+        <button
+          onClick={() => setView("admin")}
+          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#D6D0C2", textDecoration: "underline" }}
+        >
+          Painel administrativo
+        </button>
+      )}
     </footer>
   );
 }
