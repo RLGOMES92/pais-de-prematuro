@@ -6,11 +6,6 @@ import {
   BookOpen, Quote, ChevronLeft, ChevronRight
 } from "lucide-react";
 
-/* ---------------------------------------------------------
-   PAIS DE PREMATUROS — v2
-   Abas: Depoimentos | Momento de Fé | Palavras de Incentivo
---------------------------------------------------------- */
-
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 `;
@@ -37,13 +32,13 @@ const STATUS_META = {
 
 const FOUNDER_STORY = {
   id: "founder-0",
-  babyName: "Valentina",
+  babyName: "Olívia",
   weeks: 29,
   weight: "880g",
   status: "alta",
-  authorName: "Camila, mãe da Valentina",
+  authorName: "Rodrigo, pai da Olívia",
   text:
-    "Valentina nasceu de 29 semanas, pesando 880 gramas. Cabia na palma da minha mão e eu não podia nem segurá-la. Foram 97 dias de UTI, alarmes que me tiravam o sono e uma fé que eu não sabia que tinha até precisar dela inteira. Hoje ela corre pela sala, gorda e brava quando não quer comer verdura. Se você está no começo dessa jornada: seu bebê é mais forte do que parece, e você também.",
+    "Olívia nasceu de 29 semanas, pesando 880 gramas. Cabia na palma da minha mão e eu não podia nem segurá-la. Foram 97 dias de UTI, alarmes que me tiravam o sono e uma fé que eu não sabia que tinha até precisar dela inteira. Hoje ela corre pela sala, gorda e brava quando não quer comer verdura. Se você está no começo dessa jornada: seu bebê é mais forte do que parece, e você também.",
   updates: [
     { date: "07/07/2026", text: "3 aninhos hoje! Trouxe um bolinho pra UTI que a salvou, de agradecimento." },
     { date: "12/03/2024", text: "Alta definitiva. 4kg200 e mamando no peito. Chorei no carro." },
