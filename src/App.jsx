@@ -35,7 +35,7 @@ const FOUNDER_STORY = {
   babyName: "Olívia",
   weeks: 29,
   weight: "880g",
-  status: "Semi-intensiva",
+  status: "Alta",
   authorName: "Pai da Olívia",
   text: `Por um pai de UTI "Nossa história começou de forma avassaladora. Minha filha nasceu com apenas 29 semanas e pesando 880 gramas — muito prematura. O parto foi decorrência de uma pré-eclâmpsia severa da mãe que, como uma verdadeira guerreira, aguentou até o último limite para que a nossa pequena pudesse vir ao mundo de forma segura por meio de uma cesárea. Antes do nascimento, vivemos dias pesados, cheios de apreensão. Para a mãe, eram dias inteiros de exames e cuidados intensivos; para mim, o pai, dias de correria insana e pensamentos a mil. Mas o desânimo nunca teve espaço. Minha fé me dizia que daria certo. Eu não podia desmontar ou demonstrar fraqueza; precisava ser a rocha da minha esposa para que ela se mantivesse forte. Por dentro, o emocional estava abalado, mas eu sabia que Aquele que cuida de nós estava no controle. Durante duas semanas, minha rotina foi trabalhar, correr para o hospital para passar a noite with minha esposa, voltar em casa, buscar minha outra filha e levá-la para a escola. Até que o dia chegou. Nossa pequena nasceu: minúscula, mas cheia de vida. Ali começava a nossa rotina com o coração na boca. O medo do desconhecido se misturava com a esperança. Foram dias tentando 'decifrar' os números dos aparelhos da UTI. Cada barulho, cada apito, cada apneia da minha filha nos gelava a alma. Paralelamente, havia a preocupação com a recuperação da minha esposa, que graças a Deus se restabeleceu rápido, nos permitindo focar 100% na nossa guerreira. E como ela lutou! Nossa pequena foi vencendo etapas: saiu da UTI e foi para a semi-intensiva com poucos dias de vida. Começamos a rotina de alimentação com apenas 1 ml de leite. Ver aquele corpinho cheio de fios e aparelhos era doloroso, mas aos poucos ela foi vencendo os exames e se despedindo dos fios. Viver a UTI é exatamente como uma montanha-russa. Um dia você sai radiante porque ela evoluiu e aumentou o leite; no dia seguinte, sai desanimado porque ela não processou bem a dieta e perdeu peso. É um dia de cada vez. Mas seguimos aqui, com a certeza e a fé em Deus de que tudo já deu certo.
 
@@ -49,7 +49,11 @@ Um dia antes de completar os 7 dias que ela estava sem cafeína, a gente já est
   isFounder: true,
   postStatus: "aprovado"
 };
-
+function StatusBadge({ status }) {
+  const meta = STATUS_META[status];
+  const Icon = meta.icon;
+  return <span>{meta.label}</span>;
+}
 const SEED_STORIES = [
   {
     id: "seed-1", babyName: "Théo", weeks: 32, weight: "1.640kg", status: "uti",
