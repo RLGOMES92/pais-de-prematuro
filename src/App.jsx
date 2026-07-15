@@ -45,7 +45,6 @@ Um dia antes de completar os 7 dias que ela estava sem cafeína, a gente já est
   updates: [
     { date: "22/05/2026", text: "1 dia na UTi." },
     { date: "11/07/2026", text: "2kg10 a sonhada da alta." }
-    
   ],
   isFounder: true,
   postStatus: "aprovado"
