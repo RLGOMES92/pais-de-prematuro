@@ -49,11 +49,6 @@ Um dia antes de completar os 7 dias que ela estava sem cafeína, a gente já est
   isFounder: true,
   postStatus: "aprovado"
 };
-function StatusBadge({ status }) {
-  const meta = STATUS_META[status];
-  const Icon = meta.icon;
-  return <span>{meta.label}</span>;
-}
 const SEED_STORIES = [
   {
     id: "seed-1", babyName: "Théo", weeks: 32, weight: "1.640kg", status: "uti",
