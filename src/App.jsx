@@ -52,22 +52,6 @@ Um dia antes de completar os 7 dias que ela estava sem cafeína, a gente já est
 
 const SEED_STORIES = [
   {
-    id: "seed-1",
-    babyName: "Théo",
-    weeks: 32,
-    weight: "1.640kg",
-    status: "uti",
-    authorName: "Marina, mãe do Théo",
-    text: "Ainda estamos na UTI, no dia 12. Hoje ele abriu os olhinhos pra mim pela primeira vez",
-    updates: [
-      { date: "05/07/2026", text: "Passou para o CPAP! Menos um tubo, mais uma vitória." }
-    ],
-    postStatus: "aprovado"
-  }
-];
-
-const SEED_STORIES = [
-  {
     id: "seed-1", babyName: "Théo", weeks: 32, weight: "1.640kg", status: "uti",
     authorName: "Marina, mãe do Théo",
     text: "Ainda estamos na UTI, no dia 12. Hoje ele abriu os olhinhos pra mim pela primeira vez e meu peito se encheu de uma coisa que não sei nem nomear. Tenho medo de me apegar demais aos números da balança, mas tento respirar e confiar na equipe.",
