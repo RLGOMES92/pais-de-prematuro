@@ -3,7 +3,7 @@ import {
   Heart, MessageCircleHeart, LogIn, Plus, Edit3, Check, X, Filter,
   Moon, HomeIcon, ActivitySquare, Baby, Weight, Calendar, ShieldCheck,
   ChevronDown, ChevronUp, Sparkles, LogOut, Send, Loader2, BookHeart,
-  BookOpen, Quote, ChevronLeft, ChevronRight
+  BookOpen, Quote, ChevronLeft, ChevronRight, Info, HandHeart, AlertCircle
 } from "lucide-react";
 
 const FONT_IMPORT = `
@@ -49,6 +49,7 @@ Um dia antes de completar os 7 dias que ela estava sem cafeína, a gente já est
   isFounder: true,
   postStatus: "aprovado"
 };
+
 const SEED_STORIES = [
   {
     id: "seed-1", babyName: "Théo", weeks: 32, weight: "1.640kg", status: "uti",
@@ -114,6 +115,21 @@ const SEED_ENCOURAGEMENT = [
   { id: "enc-2", authorName: "Equipe Pais de Prematuros", phrase: "Cada dia que passa é uma vitória, não importa o tamanho.", postStatus: "aprovado" },
   { id: "enc-3", authorName: "Equipe Pais de Prematuros", phrase: "Você não precisa ser forte o tempo todo. Só precisa continuar aqui.", postStatus: "aprovado" },
   { id: "enc-4", authorName: "Juliana, mãe da Alice", phrase: "Gramas se ganham. Fé se constrói. Você está fazendo as duas coisas.", postStatus: "aprovado" },
+];
+
+const GLOSSARY = [
+  { term: "CPAP", desc: "Um aparelho que ajuda seu bebê a respirar com uma leve pressão de ar, sem precisar de um tubo dentro da garganta." },
+  { term: "VNI", desc: "Ventilação Não Invasiva. Assim como o CPAP, ajuda a respiração através de uma máscara ou pronguinhas no nariz, sem intubação." },
+  { term: "PICC", desc: "Um cateter fininho e flexível colocado em uma veia do bracinho ou perna, usado para dar medicamentos e nutrição sem furar o bebê toda hora." },
+  { term: "Sonda", desc: "Um tubinho fino que vai do nariz (ou boca) até o estômago, usado para alimentar o bebê enquanto ele ainda não sabe mamar sozinho." },
+  { term: "Surfactante", desc: "Uma substância que ajuda os pulmõezinhos do bebê a se manterem abertos e funcionando bem, muitas vezes dada logo após o nascimento." },
+  { term: "Idade Gestacional Corrigida", desc: "A idade do bebê calculada a partir da data prevista do parto, não da data real de nascimento — é assim que os médicos acompanham o desenvolvimento dele." },
+];
+
+const CARE_TIPS = [
+  { title: "Método Canguru", desc: "O contato pele a pele fortalece o vínculo, ajuda a regular a temperatura e o batimento cardíaco do bebê, e favorece o ganho de peso." },
+  { title: "Lavagem das mãos", desc: "A higienização correta das mãos antes de tocar no bebê é uma das formas mais simples e eficazes de protegê-lo de infecções." },
+  { title: "Ordenha de leite materno", desc: "Mesmo que o bebê ainda não mame no peito, a ordenha regular ajuda a manter e estimular a produção de leite para quando ele estiver pronto." },
 ];
 
 const storage = {
@@ -343,6 +359,7 @@ export default function App() {
 
       {view === "home" && (
         <>
+          <WelcomeBanner />
           <HeroTitle onForca={() => scrollToTabs("incentivo")} onDesabafar={openDesabafar} />
           <FounderCard story={FOUNDER_STORY} expanded={!!expanded[FOUNDER_STORY.id]} onToggle={() => toggleExpand(FOUNDER_STORY.id)} />
 
@@ -371,6 +388,7 @@ export default function App() {
               onNew={() => (user ? setShowNewEncouragement(true) : setShowLogin(true))}
             />
           )}
+          {activeTab === "guia" && <GuideTab />}
         </>
       )}
 
@@ -412,6 +430,23 @@ export default function App() {
     </div>
   );
 }
+
+/* ---------------- Banner de Boas-Vindas ---------------- */
+function WelcomeBanner() {
+  return (
+    <section style={{ maxWidth: 780, margin: "0 auto", padding: "18px 24px 0" }} className="floatIn">
+      <div style={{ background: `linear-gradient(120deg, ${PASTEL.blue}66, ${PASTEL.mint}66)`, border: `1.5px solid ${PASTEL.blue}`, borderRadius: 20, padding: "24px 26px", textAlign: "center" }}>
+        <h2 className="font-display" style={{ fontSize: "clamp(18px, 3vw, 23px)", fontWeight: 800, color: "#3A362E", margin: "0 0 10px" }}>
+          Respire fundo. Você não está sozinho(a).
+        </h2>
+        <p style={{ fontSize: 14, color: "#5C5648", lineHeight: 1.65, margin: "0 auto", maxWidth: 600 }}>
+          A UTI Neonatal é uma maratona medida em gramas, amor e pequenas vitórias diárias. Esta rede foi criada por quem já esteve nessa mesma cadeira para abraçar e acalmar o seu coração.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- TopBar (navegação, fixa e discreta) ---------------- */
 function TopBar({ user, onLogin, onLogout, view, setView, pendingCount }) {
   return (
@@ -515,7 +550,7 @@ function FounderCard({ story, expanded, onToggle }) {
             <span><Weight size={13} style={{ verticalAlign: -2, marginRight: 4 }} />{story.weight}</span>
             <span>— por {story.authorName}</span>
           </div>
-          <p style={{ fontSize: 15, lineHeight: 1.7, color: "#5C5648", margin: 0 }}>{expanded ? story.text : story.text.slice(0, 165) + "…"}</p>
+          <p style={{ fontSize: 15, lineHeight: 1.7, color: "#5C5648", margin: 0, whiteSpace: "pre-line" }}>{expanded ? story.text : story.text.slice(0, 165) + "…"}</p>
           <button onClick={onToggle} style={linkBtnStyle(PASTEL.mintDark)}>
             {expanded ? <>Ler menos <ChevronUp size={14} /></> : <>A jornada dos 880g <ChevronDown size={14} /></>}
           </button>
@@ -528,6 +563,7 @@ function FounderCard({ story, expanded, onToggle }) {
 
 function StatusBadge({ status }) {
   const meta = STATUS_META[status];
+  if (!meta) return null;
   const Icon = meta.icon;
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: meta.dark, background: meta.bg, border: `1px solid ${meta.color}`, padding: "5px 11px", borderRadius: 999, fontFamily: "'Poppins', sans-serif" }}>
@@ -569,6 +605,7 @@ function TabsNav({ activeTab, setActiveTab }) {
     { id: "depoimentos", label: "Depoimentos", icon: BookHeart, color: PASTEL.blue, dark: PASTEL.blueDark },
     { id: "fe", label: "Momento de Fé", icon: BookOpen, color: PASTEL.lilac, dark: PASTEL.lilacDark },
     { id: "incentivo", label: "Palavras de Incentivo", icon: Heart, color: PASTEL.peach, dark: PASTEL.peachDark },
+    { id: "guia", label: "Guia da UTI", icon: Info, color: PASTEL.blue, dark: PASTEL.blueDark },
   ];
   return (
     <div style={{ maxWidth: 780, margin: "0 auto", padding: "18px 24px 0" }}>
@@ -696,6 +733,7 @@ function StoryCard({ story, expanded, onToggle }) {
     </article>
   );
 }
+
 /* ---------------- Aba: Momento de Fé ---------------- */
 function FaithTab({ items, onNew }) {
   return (
@@ -786,6 +824,44 @@ function EncouragementTab({ items, onNew }) {
   );
 }
 
+/* ---------------- Aba: Guia da UTI & Informações Úteis ---------------- */
+function GuideTab() {
+  return (
+    <section style={{ maxWidth: 780, margin: "0 auto", padding: "24px 24px 70px" }}>
+      <div style={{ marginBottom: 22 }}>
+        <h2 className="font-display" style={{ fontSize: 19, fontWeight: 800, color: "#3A362E", margin: "0 0 4px" }}>Guia da UTI & Informações Úteis</h2>
+        <p style={{ fontSize: 13, color: "#9C9384", margin: 0 }}>Explicações simples para ajudar você a entender melhor essa rotina.</p>
+      </div>
+
+      <SubSectionTitle>Mini-Glossário</SubSectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14, marginBottom: 30 }}>
+        {GLOSSARY.map((g) => (
+          <div key={g.term} style={{ background: PASTEL.blue + "40", border: `1px solid ${PASTEL.blue}`, borderRadius: 16, padding: "16px 18px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <Info size={15} color={PASTEL.blueDark} />
+              <span className="font-display" style={{ fontSize: 14, fontWeight: 700, color: PASTEL.blueDark }}>{g.term}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: 13.5, color: "#5C5648", lineHeight: 1.55 }}>{g.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <SubSectionTitle>Pilares de Cuidado</SubSectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14 }}>
+        {CARE_TIPS.map((c) => (
+          <div key={c.title} style={{ background: PASTEL.mint + "40", border: `1px solid ${PASTEL.mint}`, borderRadius: 16, padding: "16px 18px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <HandHeart size={15} color={PASTEL.mintDark} />
+              <span className="font-display" style={{ fontSize: 14, fontWeight: 700, color: PASTEL.mintDark }}>{c.title}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: 13.5, color: "#5C5648", lineHeight: 1.55 }}>{c.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- Login Modal (simulado) ---------------- */
 function LoginModal({ onClose, onLogin, onAdminLogin }) {
   const [name, setName] = useState("");
@@ -852,6 +928,7 @@ function LoginModal({ onClose, onLogin, onAdminLogin }) {
     );
   }
 }
+
 /* ---------------- New Story Modal ---------------- */
 function NewStoryModal({ onClose, onSubmit }) {
   const [babyName, setBabyName] = useState("");
@@ -1036,6 +1113,7 @@ function TabBtn({ active, children, onClick }) {
     </button>
   );
 }
+
 /* ---------------- Minhas Publicações ---------------- */
 function MyStuff({ stories, faith, encouragements, onEditStory }) {
   return (
@@ -1195,13 +1273,21 @@ function ModerateButtons({ onApprove, onReject }) {
 /* ---------------- Footer ---------------- */
 function Footer({ setView, user }) {
   return (
-    <footer style={{ borderTop: "1px solid #F0EBE0", padding: "26px 24px 40px", textAlign: "center" }}>
-      <p style={{ fontSize: 13, color: "#B4AC9C", margin: "0 0 8px" }}>Feito com 💚 para famílias que atravessam a jornada da prematuridade.</p>
-      {user?.isAdmin && (
-        <button onClick={() => setView("admin")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#D6D0C2", textDecoration: "underline" }}>
-          Painel administrativo
-        </button>
-      )}
+    <footer style={{ borderTop: "1px solid #F0EBE0", padding: "26px 24px 40px" }}>
+      <div style={{ maxWidth: 780, margin: "0 auto 20px", background: "#F5F1E8", border: "1px solid #EFE9DD", borderRadius: 14, padding: "14px 18px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <AlertCircle size={16} color="#9C9384" style={{ flexShrink: 0, marginTop: 2 }} />
+        <p style={{ margin: 0, fontSize: 12, color: "#9C9384", lineHeight: 1.6 }}>
+          <strong>Nota importante:</strong> Este site é um espaço de apoio emocional e troca de experiências entre famílias. O conteúdo não substitui as orientações, diagnósticos e tratamentos da equipe médica responsável pelo seu bebê.
+        </p>
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ fontSize: 13, color: "#B4AC9C", margin: "0 0 8px" }}>Feito com 💚 para famílias que atravessam a jornada da prematuridade.</p>
+        {user?.isAdmin && (
+          <button onClick={() => setView("admin")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "#D6D0C2", textDecoration: "underline" }}>
+            Painel administrativo
+          </button>
+        )}
+      </div>
     </footer>
   );
 }
